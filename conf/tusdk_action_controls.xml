@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<sqoop-shell type="import">
+		<param key="connect">jdbc:mysql://192.168.1.171:3306/source_$someday$</param>
+		<param key="username">root</param>
+		<param key="password">xxxxxx</param>
+		<param key="direct"></param>
+		<param key="fields-terminated-by">'\t'</param>
+		<param key="query">"select * from tusdk_action_controls where \$CONDITIONS and time &gt;= %d and time &lt;= %d"</param>
+		<param key="delete-target-dir"></param>
+		<param key="hive-table">test.tusdk_action_controls</param>
+		<param key="target-dir">/hive/warehouse/test.db/tusdk_action_controls/dt=$someday$</param>
+		<param key="m">1</param>
+	</sqoop-shell>
+</root>

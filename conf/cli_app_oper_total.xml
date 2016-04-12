@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<sqoop-shell type="export">
+		<param key="connect">jdbc:mysql://192.168.1.171:3306/report</param>
+		<param key="username">root</param>
+		<param key="password">xxxxxx</param>
+		<param key="direct"></param>
+		<param key="fields-terminated-by">'\t'</param>	
+		<param key="export-dir">/hive/warehouse/test.db/cli_app_oper_total</param>
+		<param key="table">cli_app_oper_total</param>
+	</sqoop-shell>
+</root>

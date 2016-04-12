@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<task type="all">
+		<table>lasque_apps</table>
+		<table>lasque_user</table>
+		<table>tusdk_user_devices</table>
+	</task>
+	<task type="add">
+		<table>tusdk_action_controls</table>
+	</task>
+</root>

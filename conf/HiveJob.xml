@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<!--
+	<Job type="analysis">
+		<hql>select * from test where dt = \$dt</hql>
+		<hql>...</hql>
+		<hql>...</hql>
+	</Job>
+	-->
+	<Job type="create_tbl">
+		<hql>use test;drop table if exists lasque_apps;
+			CREATE TABLE lasque_apps (
+
+			)
+			row format delimited
+			fields terminated by '\t'
+			stored as textfile
+		</hql>
+		<hql>use test;drop table if exists lasque_users;
+			CREATE TABLE lasque_users (
+
+			)
+			row format delimited
+			fields terminated by '\t'
+			stored as textfile
+		</hql>
+		<hql>use test;drop table if exists cli_app;
+			CREATE TABLE cli_app (
+
+			)
+			row format delimited
+			fields terminated by '\t'
+			stored as textfile
+		</hql>
+		<hql>use test;drop table if exists user_oper;
+			CREATE TABLE user_oper (
+
+			)
+			row format delimited
+			fields terminated by '\t'
+			stored as textfile
+		</hql>
+		<hql>use test;drop table if exists user_oper_total;
+			CREATE TABLE user_oper_total (
+
+			)
+			row format delimited
+			fields terminated by '\t'
+			stored as textfile
+		</hql>
+		<hql>use test;drop table if exists cli_app_oper_total;
+			CREATE TABLE cli_app_oper_total (
+
+			)
+			row format delimited
+			fields terminated by '\t'
+			stored as textfile
+		</hql>
+		<hql>use test;drop table if exists tusdk_user_devices;
+			CREATE TABLE tusdk_user_devices (
+
+			)
+			row format delimited
+			fields terminated by '\t'
+			stored as textfile
+		</hql>
+		<hql>use test;drop table if exists tusdk_action_controls;
+			CREATE TABLE tusdk_action_controls (
+
+			) PARTITIONED by (dt string)
+			row format delimited 
+			fields terminated by '\t' 
+			stored as textfile
+		</hql>
+	</Job>	
+	<Job type="create_prt">
+		<hql>use test;
+			set hive.exec.dynamic.partition=true;
+			set hive.exec.dynamic.partition.mode=nonstrict;
+			set hive.exec.max.dynamic.partitions.pernode=1000;
+			alter table tusdk_action_controls add if not exists partition (dt='$someday$')
+		</hql>
+	</Job>	
+	<Job type="etl_pro">
+		<hql>use test;insert overwrite table cli_app 
+				SELECT
+
+				FROM lasque_users lu
+				join (
+				        select
+
+				        from
+				                lasque_apps
+				        group by cli_id,app_pck,app_name,sys
+				) la
+				on (lu.cli_id=la.cli_id)
+		</hql>
+		<hql>use test;insert overwrite table user_oper
+				SELECT
+
+				FROM (
+				        select
+
+				        from
+				                tusdk_action_controls
+				        where dt='$someday$'
+				        ) tac
+				join (
+				        select
+
+				        from tusdk_user_devices
+				) tud
+				on (tac.identifier=tud.identifier)
+		</hql>
+		<hql>use test;insert overwrite table user_oper_total
+				select
+
+				        nvl(tud.inc_nu,0),
+
+				from (
+				select
+
+				        count(distinct case when op_id>2 then identifier else null end) as rel_op,
+				        count(distinct identifier) as all_op
+				from user_oper
+				group by dt,cli_lb,app_pck,sys) uo
+				left outer join (
+				select
+
+				        count(*) as inc_nu
+				from tusdk_user_devices
+				where from_unixtime(created,'yyyyMMdd')='$someday$'
+				group by dev,app_id,client) tud
+				on (uo.cli_lb=tud.dev and uo.app_pck=tud.app_id and uo.sys=tud.client)
+		</hql>				
+		<hql>use test;insert into table cli_app_oper_total 
+				SELECT
+
+					ut.user_inc_total,
+					ut.rel_oper_total,
+					ut.all_oper_total,
+					dense_rank() over (order by ut.all_oper_total desc) as rk
+				FROM user_oper_total ut
+				join cli_app ca
+				on (ut.cli_lb=ca.cli_lb and ut.app_pck=ca.app_pck and ut.sys=ca.sys)
+		</hql>
+	</Job>	
+</root>
